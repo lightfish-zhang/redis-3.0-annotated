@@ -105,7 +105,9 @@ void zlibc_free(void *ptr) {
     } \
 } while(0)
 
+// 维护一个全局遍历，表示Redis已经使用了多少内存
 static size_t used_memory = 0;
+// 在多线程时，对内存空间操作时，加锁控制，避免`used_memory`变脏
 static int zmalloc_thread_safe = 0;
 pthread_mutex_t used_memory_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -234,10 +236,12 @@ size_t zmalloc_used_memory(void) {
     return um;
 }
 
+/* 是否设置线程安全模式 */  
 void zmalloc_enable_thread_safeness(void) {
     zmalloc_thread_safe = 1;
 }
 
+/* 可自定义设置内存溢出的处理方法 */  
 void zmalloc_set_oom_handler(void (*oom_handler)(size_t)) {
     zmalloc_oom_handler = oom_handler;
 }

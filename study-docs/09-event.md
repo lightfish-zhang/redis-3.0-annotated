@@ -120,8 +120,11 @@ static int aeApiAddEvent(aeEventLoop *eventLoop, int fd, int mask) {
 
 - 相关代码在`src/networking.c`,`src/anet.c`文件
 - `anet.c`封装了对`socket`的相关处理函数，如下，都是socket的tcp的服务端套路
+    + 端口`port`，`getaddrinfo()`获取ipv4/ipv6的地址`addrinfo`等信息
     + 创建`socket`，域为本地`AF_LOCAL`，类型为`SOCK_STREAM`，也就是tcp方式，`protocol`为0，使用系统默认
+    + 将`socketfd`与`addrinfo`绑定`bind()`
     + 将`socket`的文件描述符设置为非阻塞io，使用文件控制函数`fcntl()`
+    + 监听`listen()`套接字
     + 将`socketfd`加入`epoll`监听，当可读时，调用`accept`获取客户端连接的描述符`connfd`，把`connfd`加入`epoll`的监听中
 
 ```
@@ -187,7 +190,7 @@ static int anetGenericAccept(char *err, int s, struct sockaddr *sa, socklen_t *l
 
 ```
 
-- `networking.c`封装了与客户端通信的数据的处理函数
+- `networking.c`封装了与客户端通信的数据的处理函数，有服务端与客户端的
 - 网络通信有一点需要注意的是大小端数据的问题，大小端也就是字节顺序类型
     + Redis的规范是，所有键值对的数据都以小端表示，网络通信的字节也是约定为小端格式
     + 通过预编译命令，判断主机的环境时大端还是小端，修改代码中的`memrev`的函数
